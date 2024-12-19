@@ -3,9 +3,11 @@
 This guide provides instructions on setting up a Minato node using Docker, Docker Compose, and binary installation.
 
 ## Hardware requirement
+
 We recommend using the `i3.2xlarge` AWS instance type or equivalent hardware. If you want to set it up as a public RPC, you will need to adjust node resources based on your traffic.
 
----------------------------
+---
+
 # Docker installation
 
 ## Prerequisites
@@ -17,63 +19,37 @@ Make sure you have the latest versions of Docker and Docker Compose installed.
 
 ## Setup Instructions
 
-1. **Generate JWT Secret**
+### 1️⃣ Clone
+```
+git clone https://github.com/blockchain-DAT/minato_node.git && cd minato_node
+```
 
-   Generate a JWT secret by running the following command:
+### 2️⃣ Run
 
-   ```bash
-   openssl rand -hex 32 > jwt.txt
-   ```
+```
+chmod +x One_click.sh && ./One_click.sh
+```
+The script will automatically install the missing dependencies. You need to enter the following two configurations during the operation:
 
-2. **Rename Environment File**
+P2P_ADVERTISE_IP: Public IP. The cloud host external IP of VPS users is the public IP; ordinary computer users can visit https://www.myip.com to view it.
 
-   Rename `sample.env` to `.env`:
+PRIVATE_KEY: Your wallet private key. (Make sure the wallet has enough test coins.)
 
-   ```bash
-   mv sample.env .env
-   ```
+Then, the script will build the container and run the node.
 
-3. **Update Environment Variables**
 
-   Open the `.env` file in a text editor and update the following variables:
+  <img width="1123" alt="Screenshot 1403-06-02 at 18 53 12" src="https://github.com/user-attachments/assets/c2500a17-e31a-4d50-a8c5-54d36071fdb5">
 
-   ```bash
-   L1_URL=https://sepolia-l1.url 
-   L1_BEACON=https://sepolia-beacon-l1.url
-   P2P_ADVERTISE_IP=<Node Public IP>
-   ```
-
-In some node providers, you need to specify your node's public IP for `op-geth`. To do this, replace `<your_node_public_ip>` with your actual public IP in the `--nat=extip:<your_node_public_ip>` parameter within the `docker-compose.yml` file, specifically under the `op-geth-minato` service settings. 
-
-   <b>Recommendation: For faster synchronization, it's recommended to have the L1 node geographically close to the Minato node.</b>
-
-4. **Run Docker Compose**
-
-   Run the Docker Compose file to start the services:
-
-   ```bash
-   docker-compose up -d
-   ```
-
-5. **Check Logs**
-
-   Monitor the logs to ensure the services are running correctly:
-
-   - For `op-node-minato`:
-     ```bash
-     docker-compose logs -f op-node-minato
-     ```
-   <img width="1123" alt="Screenshot 1403-06-02 at 18 53 12" src="https://github.com/user-attachments/assets/c2500a17-e31a-4d50-a8c5-54d36071fdb5">
-
-  - For `op-geth-minato`:
-     ```bash
-     docker-compose logs -f op-geth-minato
-     ```
-     <img width="1128" alt="Screenshot 1403-06-02 at 18 53 33" src="https://github.com/user-attachments/assets/218a16c2-f610-4985-96fd-447c52f54bdc">
+- For `op-geth-minato`:
+  ```bash
+  docker-compose logs -f op-geth-minato
+  ```
+   <img width="1128" alt="Screenshot 1403-06-02 at 18 53 33" src="https://github.com/user-attachments/assets/218a16c2-f610-4985-96fd-447c52f54bdc">
 
 After each restart, it takes approximately 2 minutes for the node to start syncing.
 
----------------------------
+---
+
 # Binary installation
 
 ## Prerequisites
@@ -89,11 +65,12 @@ After each restart, it takes approximately 2 minutes for the node to start synci
 Download the `op-node` and `geth` binaries from the release page:
 
 ```bash
-wget https://github.com/Soneium/soneium-node/releases/download/v1.9.0-ec45f663-1723023640/op-node
-wget https://github.com/Soneium/soneium-node/releases/download/v1.101315.3-stable-8af19cf2/geth
+wget https://github.com/Soneium/soneium-node/releases/download/1.9.3-e81c50de-1727294020/op-node
+wget https://github.com/Soneium/soneium-node/releases/download/1.101408.0-stable-5c2e7586/geth
 ```
 
 ### Step 2: Set Executable Permissions
+
 Make the downloaded binaries executable:
 
 ```bash
@@ -101,6 +78,7 @@ chmod +x op-node geth
 ```
 
 ### Step 3: Move Binaries to `/usr/local/bin`
+
 Move the binaries to `/usr/local/bin` for easy execution:
 
 ```bash
@@ -108,22 +86,23 @@ sudo mv -t /usr/local/bin geth op-node
 ```
 
 ### Step 4: Set Up Configuration
+
 Create the necessary directories and generate the JWT secret:
 
 ```bash
 sudo mkdir /etc/optimism
-openssl rand -hex 32 > jwt.txt
-git clone git@github.com:Web3-Technology-Planning-Office-SNCLabs/soneium-node.git
+git clone https://github.com/Soneium/soneium-node.git
 cd soneium-node/minato
 openssl rand -hex 32 > jwt.txt
 sudo mv -t /etc/optimism/ minato-genesis.json jwt.txt minato-rollup.json
 ```
 
 ### Step 5: Initialize Geth
+
 Initialize `geth` with the genesis configuration:
 
 ```bash
-sudo geth init --datadir=/data/optimism/ /etc/optimism/genesis.json
+sudo geth init --state.scheme=hash --datadir=/data/optimism/ /etc/optimism/minato-genesis.json
 ```
 
 ## Service Configuration
@@ -165,7 +144,9 @@ ExecStart=/usr/local/bin/op-node \
   --metrics.enabled \
   --p2p.advertise.ip=<your-public-ip> \
   --metrics.port=7310 \
-  --rollup.config=/etc/optimism/rollup.json
+  --override.fjord=1730106000 \
+  --override.granite=1730106000 \
+  --rollup.config=/etc/optimism/minato-rollup.json
 
 Restart=always
 RestartSec=10
@@ -196,19 +177,19 @@ Type=simple
 ExecStart=/usr/local/bin/geth \
   --datadir=/data/optimism \
   --http \
-  --http.corsdomain="*" \
-  --http.vhosts="*" \
+  --http.corsdomain=* \
+  --http.vhosts=* \
   --http.addr=0.0.0.0 \
   --http.api=web3,debug,eth,txpool,net,engine \
   --ws \
   --ws.addr=0.0.0.0 \
   --ws.port=8546 \
-  --ws.origins="*" \
+  --ws.origins=* \
   --ws.api=debug,eth,txpool,net,engine \
   --syncmode=full \
   --gcmode=archive \
   --maxpeers=100 \
-  --authrpc.vhosts="*" \
+  --authrpc.vhosts=* \
   --authrpc.addr=0.0.0.0 \
   --authrpc.port=8551 \
   --authrpc.jwtsecret=/etc/optimism/jwt.txt \
@@ -218,10 +199,13 @@ ExecStart=/usr/local/bin/geth \
   --metrics.port=6060 \
   --rollup.disabletxpoolgossip=false \
   --rpc.allow-unprotected-txs=true \
-  --nat=extip:<your_node_public_ip> \
+  --nat=extip:<your-public-ip> \
   --db.engine=pebble \
   --state.scheme=hash \
-  --bootnodes=enode://6526c348274c54e7b4184014741897eb25e12ca388f588b0265bb2246caeea87ed5fcb2d55b7b08a90cd271a53bc76decb6d1ec37f219dbe4cd3ed53a888118b@peering-02.prd.hypersonicl2.com:30303,enode://34f172c255b11f64828d73c90a60395691e89782639423d434385594dd38b434ddffb78ad411da6fd37cbda6d0f93e17ceae399ac4f2594b0d54eb8c83c27de9@peering-01.prd.hypersonicl2.com:30303"
+  --override.fjord=1730106000 \
+  --override.granite=1730106000 \
+  --bootnodes=enode://6526c348274c54e7b4184014741897eb25e12ca388f588b0265bb2246caeea87ed5fcb2d55b7b08a90cd271a53bc76decb6d1ec37f219dbe4cd3ed53a888118b@peering-02.prd.hypersonicl2.com:30303,enode://34f172c255b11f64828d73c90a60395691e89782639423d434385594dd38b434ddffb78ad411da6fd37cbda6d0f93e17ceae399ac4f2594b0d54eb8c83c27de9@peering-01.prd.hypersonicl2.com:30303
+
 
 Restart=always
 RestartSec=10
@@ -231,6 +215,7 @@ WantedBy=multi-user.target
 ```
 
 ## Step 6: Enable and Start Services
+
 Enable and start the services to run at boot:
 
 ```bash
