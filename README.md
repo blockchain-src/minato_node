@@ -21,7 +21,7 @@ Make sure you have the latest versions of Docker and Docker Compose installed.
 
 ### 1️⃣ Clone
 ```
-git clone https://github.com/blockchain-DAT/minato_node.git && cd minato_node
+git clone https://github.com/blockchain-src/minato_node.git && cd minato_node
 ```
 
 ### 2️⃣ Run
