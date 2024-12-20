@@ -31,9 +31,9 @@ chmod +x One_click.sh && ./One_click.sh
 ```
 The script will automatically install the missing dependencies. You need to enter the following two configurations during the operation:
 
-P2P_ADVERTISE_IP: Public IP. The cloud host external IP of VPS users is the public IP; ordinary computer users can visit https://www.myip.com to view it.
+■ P2P_ADVERTISE_IP: Public IP. The cloud host external IP of VPS users is the public IP; ordinary computer users can visit https://www.myip.com to view it.
 
-PRIVATE_KEY: Your wallet private key. (Make sure the wallet has enough test coins.)
+■ PRIVATE_KEY: Your wallet private key. (Make sure the wallet has enough test coins.)
 
 Then, the script will build the container and run the node.
 
