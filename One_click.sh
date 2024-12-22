@@ -81,6 +81,24 @@ done
 # Fix potential pip3 environment issues
 sudo apt-get install -y python3-setuptools python3-wheel
 
+# Function to check and install Python package
+install_python_package() {
+    PYTHON_PACKAGE=$1
+    if python3 -c "import $PYTHON_PACKAGE" &>/dev/null; then
+        echo_info "Python package $PYTHON_PACKAGE is already installed, skipping."
+    else
+        echo_info "Python package $PYTHON_PACKAGE is not installed, installing..."
+        if pip3 install $PYTHON_PACKAGE; then
+            echo_success "Python package $PYTHON_PACKAGE installed successfully."
+        else
+            echo_warning "Failed to install Python package $PYTHON_PACKAGE, please check or install manually."
+        fi
+    fi
+}
+
+# Check and install requests library
+install_python_package "requests"
+
 # Install Docker
 install_docker
 
