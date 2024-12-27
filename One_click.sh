@@ -137,9 +137,9 @@ fi
 
 # Print information for the user
 echo -e "${BOLD}${YELLOW}"
-echo "=============================================================="
+echo "=============================================================================="
 echo "🌟 The ./minato/.env file configuration is required for the script to run! 🌟"
-echo "=============================================================="
+echo "=============================================================================="
 echo -e "${NC}${BOLD}Please enter the following information accurately:${NC}"
 
 # Check if ./minato/.env file exists, create if not
